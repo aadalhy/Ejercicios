@@ -206,6 +206,7 @@ app.delete('/',(req,res) =>
 
             //arrJsnUsuarios.push(actualizar);
 
+            
             return res.status(200).json
             ({
                 ok:true,
