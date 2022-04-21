@@ -1,8 +1,8 @@
 const express = require('express');
 const app = express.Router();
 
-//let arrJsnUsuarios=[{ _id:1, strNombre:'Adalhy', strApellido:'Vazquez', strEmail:'adalhy@hotmail.com'}];
-let arrJsnUsuarios=[];
+let arrJsnUsuarios=[{ _id:1, strNombre:'Adalhy', strApellido:'Vazquez', strEmail:'adalhy@hotmail.com'}];
+//let arrJsnUsuarios=[];
 
 /*ejmeplo de desclaracion de variables
 let arrUsuarios;
@@ -48,6 +48,50 @@ app.get('/',(req,res)=>
         //ejemplo de otra forma de enviar una respuesta
         //return res.status(300).send('<h5>Hola soy Alejandro</h5>')
        // return res.download(rutadescarga,'document.html');
+    
+})
+
+app.get('/obtenerusuario',(req,res)=>
+{
+    const _idUsuario = Number(req.query._idUsuario);
+
+    if(!_idUsuario)
+    {
+        return res.status(400).json
+            ({
+                ok:false,
+                msg:'El usuario no es valido',
+                cont:
+                {
+                    _idUsuario
+                }
+            })
+    }
+
+    const encuentra = arrJsnUsuarios.find(usuario => usuario._id === _idUsuario);
+
+    if(!encuentra)
+    {
+        return res.status(400).json(
+            {
+                ok:false,
+                msg: 'El usuario no existe',
+                cont:
+                {
+                    _idUsuario
+                }
+            })
+    }
+    
+    return res.status(200).json(
+        {
+            ok:true,
+            msg: 'El usuario si existe',
+            cont:
+            {
+                encuentra
+            }
+        })   
     
 })
 
