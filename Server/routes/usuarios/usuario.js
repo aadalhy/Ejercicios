@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express.Router();
 const UsuarioModel = require('../../models/usuario/usuario.model');
+const bcrypt = require('bcrypt');
 
 //let arrJsnUsuarios=[{ _id:1, strNombre:'Adalhy', strApellido:'Vazquez', strEmail:'adalhy@hotmail.com'}];
 //let arrJsnUsuarios=[];
@@ -36,7 +37,12 @@ app.get('/', async (req,res) => {
 
 app.post('/', async (req,res) =>
 {
-    const body = req.body;
+    // ? = !_undefined
+    // Ternadrio =  existe ? verdadero : si no existe
+    const body ={ ...req.body, strContrasena: req.body.strContrasena ? bcrypt.hashSync(req.body.strContrasena,10) : undefined };
+    
+    //ejemplo de como se encripta 
+    //const pwdEncrypt = bcrypt.hashSync(body.strContrasena,10);
 
     const obtenerusuario = await UsuarioModel.find({strEmail:body.strEmail});
 
@@ -76,42 +82,8 @@ app.post('/', async (req,res) =>
         }
     })
 
-   
-
 })
 
-/*
-app.post('/', async (req,res) =>{
-    
-    const body = req.body;
-    const usuarioBody = new UsuarioModel(body);
-    const err = usuarioBody.validateSync();
-
-    if (err)
-    {
-        return res.status(400).json({
-            ok: false,
-            msg:'No se recibio algun campo favor de validar',
-            cont:
-            {
-                err
-            }
-        })
-    }
-
-    const registradoU = await usuarioBody.save();
-
-    return res.status(200).json({
-        ok: true,
-        msg:'El usuario se registro correctamente',
-        cont:
-        {
-            registradoU
-        }
-    })
-   
-})
-*/
 
 /*
 app.get('/',(req,res)=>
