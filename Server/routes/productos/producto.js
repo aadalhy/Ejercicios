@@ -11,15 +11,60 @@ app.get('/', async (req,res) => {
 
     console.log(obtenerproductos);
 
+    if(!obtenerproductos.length>0) 
+    {
+        return res.status(400).json({
+            ok: false,
+            msg:'No hay productos en la base de datos',
+            cont:
+            {
+                obtenerproductos
+            }
+        })
+    }
+
     return res.status(200).json({
-        ok: false,
-        msg:'Entre a la ruta producto',
+        ok: true,
+        msg:'Si hay productos en la base de datos',
         cont:
         {
             obtenerproductos
         }
     })
 });
+
+
+app.post('/', async (req,res) =>{
+    
+    const body = req.body;
+    const productoBody = new ProductoModel(body);
+    const err = productoBody.validateSync();
+
+    if (err)
+    {
+        return res.status(400).json({
+            ok: false,
+            msg:'No se recibio algun campo favor de validar',
+            cont:
+            {
+                err
+            }
+        })
+    }
+
+    const registradoP = await productoBody.save();
+
+    return res.status(200).json({
+        ok: true,
+        msg:'El producto se registro correctamente',
+        cont:
+        {
+            registradoP
+        }
+    })
+   
+})
+
 
 /*app.get('/',(req,res)=>
 {

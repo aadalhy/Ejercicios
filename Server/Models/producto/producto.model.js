@@ -15,6 +15,11 @@ let schemaProducto = mongoose.Schema({
     {
         type: Number,
         required:[true,'No se recibio el precio. Favor de ingresarlo']
+    },
+    nmbCantidad:
+    {
+        type: Number,
+        required:[true,'No se recibio el precio. Favor de ingresarlo']
     }
 });
 

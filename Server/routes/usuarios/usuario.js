@@ -9,7 +9,7 @@ app.get('/', async (req,res) => {
 
     const obtenerusuarios = await UsuarioModel.find();
 
-    console.log(obtenerusuarios);
+    //console.log(obtenerusuarios);
 
     if(!obtenerusuarios.length>0) 
     {
@@ -24,14 +24,95 @@ app.get('/', async (req,res) => {
     }
 
     return res.status(200).json({
-        ok: false,
+        ok: true,
         msg:'Si hay usuarios en la base de datos',
+        count: obtenerusuarios.length,
         cont:
         {
             obtenerusuarios
         }
     })
 });
+
+app.post('/', async (req,res) =>
+{
+    const body = req.body;
+
+    const obtenerusuario = await UsuarioModel.find({strEmail:body.strEmail});
+
+
+    if(obtenerusuario.length>0)
+    {
+        return res.status(400).json({
+            ok:false,
+            msg:('El email ya se encuentra registrado'),
+            cont:{
+                body
+            }
+        })
+    }
+
+    const bodyUsuario = new UsuarioModel(body);
+    const err = bodyUsuario.validateSync();
+
+    if (err) 
+    {
+        return res.status(400).json({
+            ok:false,
+            msg:('Falta uno o mas datos del usuario. Favor de completarlos'),
+            cont:{
+                err
+            }
+        })
+    }
+
+    const usuarioRegistrado = await bodyUsuario.save();
+
+    return res.status(200).json({
+        ok:true,
+        msg:('El usuario se registro correctamente'),
+        cont:{
+            usuarioRegistrado
+        }
+    })
+
+   
+
+})
+
+/*
+app.post('/', async (req,res) =>{
+    
+    const body = req.body;
+    const usuarioBody = new UsuarioModel(body);
+    const err = usuarioBody.validateSync();
+
+    if (err)
+    {
+        return res.status(400).json({
+            ok: false,
+            msg:'No se recibio algun campo favor de validar',
+            cont:
+            {
+                err
+            }
+        })
+    }
+
+    const registradoU = await usuarioBody.save();
+
+    return res.status(200).json({
+        ok: true,
+        msg:'El usuario se registro correctamente',
+        cont:
+        {
+            registradoU
+        }
+    })
+   
+})
+*/
+
 /*
 app.get('/',(req,res)=>
 {

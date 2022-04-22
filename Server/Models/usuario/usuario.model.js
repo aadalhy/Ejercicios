@@ -11,10 +11,20 @@ let schemaUsuario = mongoose.Schema({
         type: String,
         required:[true,'No se recibio el apellido. Favor de ingresarlo']
     },
+    strDireccion:
+    {
+        type: String,
+        required:[true,'No se recibio la direccion. Favor de ingresarlo']
+    },
     strEmail:
     {
         type: String,
         required:[true,'No se recibio email. Favor de ingresarlo']
+    },
+    strContrasena:
+    {
+        type: String,
+        required:[true,'No se recibio la contrasena. Favor de ingresarlo']
     }
 });
 
