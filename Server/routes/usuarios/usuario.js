@@ -1,21 +1,38 @@
 const express = require('express');
 const app = express.Router();
+const UsuarioModel = require('../../models/usuario/usuario.model');
 
-let arrJsnUsuarios=[{ _id:1, strNombre:'Adalhy', strApellido:'Vazquez', strEmail:'adalhy@hotmail.com'}];
+//let arrJsnUsuarios=[{ _id:1, strNombre:'Adalhy', strApellido:'Vazquez', strEmail:'adalhy@hotmail.com'}];
 //let arrJsnUsuarios=[];
 
-/*ejmeplo de desclaracion de variables
-let arrUsuarios;
-let strNombre;
-let nmbCantidad;
-let jsnNombreCompleto;
-let blnEstado;
-let datFecha;*/
+app.get('/', async (req,res) => {
 
-//Ejemplo para descargar archivo
-//const path = require('path');
-//const rutadescarga=path.resolve (__dirname,'../../assets/index.html');
+    const obtenerusuarios = await UsuarioModel.find();
 
+    console.log(obtenerusuarios);
+
+    if(!obtenerusuarios.length>0) 
+    {
+        return res.status(400).json({
+            ok: false,
+            msg:'No hay usuarios en la base de datos',
+            cont:
+            {
+                obtenerusuarios
+            }
+        })
+    }
+
+    return res.status(200).json({
+        ok: false,
+        msg:'Si hay usuarios en la base de datos',
+        cont:
+        {
+            obtenerusuarios
+        }
+    })
+});
+/*
 app.get('/',(req,res)=>
 {
     const arrUsuarios= arrJsnUsuarios;
@@ -289,5 +306,5 @@ app.delete('/',(req,res) =>
         
     }
 })
-
+*/
 module.exports = app;

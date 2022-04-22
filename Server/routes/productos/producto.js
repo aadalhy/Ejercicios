@@ -1,10 +1,27 @@
 const express = require('express');
 const app = express.Router();
+const ProductoModel = require('../../models/producto/producto.model');
 
 //const arrJsnProductos=[{ _id:0, strNombre:'Adalh', nmbCantidad:0, strDescripcion:'', nmbPrecio:0}];
-let arrJsnProductos=[];
+//let arrJsnProductos=[];
 
-app.get('/',(req,res)=>
+app.get('/', async (req,res) => {
+
+    const obtenerproductos = await ProductoModel.find();
+
+    console.log(obtenerproductos);
+
+    return res.status(200).json({
+        ok: false,
+        msg:'Entre a la ruta producto',
+        cont:
+        {
+            obtenerproductos
+        }
+    })
+});
+
+/*app.get('/',(req,res)=>
 {
     const arrProducto = arrJsnProductos;
 
@@ -189,7 +206,7 @@ app.delete('/',(req,res)=>
                 eliminar
             }
         }) 
-})
+})*/
 
 
 module.exports = app;
