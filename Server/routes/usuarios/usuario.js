@@ -44,10 +44,11 @@ app.post('/', async (req,res) =>
     //ejemplo de como se encripta 
     //const pwdEncrypt = bcrypt.hashSync(body.strContrasena,10);
 
-    const obtenerusuario = await UsuarioModel.find({strEmail:body.strEmail});
+    //const obtenerusuario = await UsuarioModel.find({strEmail:body.strEmail, strNombreUsuario:body.strNombreUsuario},{strContrasena:0});
+    const obtenerEmail = await UsuarioModel.find({strEmail:body.strEmail});
+    const obtenerNombreUsuario = await UsuarioModel.find({strNombreUsuario:body.strNombreUsuario});
 
-
-    if(obtenerusuario.length>0)
+    if(obtenerEmail.length>0)
     {
         return res.status(400).json({
             ok:false,
@@ -57,6 +58,18 @@ app.post('/', async (req,res) =>
             }
         })
     }
+
+    if(obtenerNombreUsuario.length>0)
+    {
+        return res.status(400).json({
+            ok:false,
+            msg:('El nombre de usuario ya se encuentra registrado'),
+            cont:{
+                body
+            }
+        })
+    }
+
 
     const bodyUsuario = new UsuarioModel(body);
     const err = bodyUsuario.validateSync();

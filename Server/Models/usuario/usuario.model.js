@@ -25,6 +25,11 @@ let schemaUsuario = mongoose.Schema({
     {
         type: String,
         required:[true,'No se recibio la contrasena. Favor de ingresarlo']
+    },
+    strNombreUsuario:
+    {
+        type: String,
+        required:[true,'No se recibio el nombre de usuario. Favor de ingresarlo']
     }
 });
 
