@@ -8,8 +8,8 @@ const bcrypt = require('bcrypt');
 
 app.get('/', async (req,res) => {
 
-    const obtenerusuarios = await UsuarioModel.find();
-
+    const obtenerusuarios = await UsuarioModel.find({},{strContrasena:0});
+    
     //console.log(obtenerusuarios);
 
     if(!obtenerusuarios.length>0) 
