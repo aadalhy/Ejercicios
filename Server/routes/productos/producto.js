@@ -7,64 +7,193 @@ const ProductoModel = require('../../models/producto/producto.model');
 
 app.get('/', async (req,res) => {
 
-    const obtenerproductos = await ProductoModel.find();
+    try {
+        const obtenerproductos = await ProductoModel.find();
 
-    console.log(obtenerproductos);
+        //console.log(obtenerproductos);
 
-    if(!obtenerproductos.length>0) 
-    {
-        return res.status(400).json({
-            ok: false,
-            msg:'No hay productos en la base de datos',
+        if(!obtenerproductos.length>0) 
+        {
+            return res.status(400).json({
+                ok: false,
+                msg:'No hay productos en la base de datos',
+                cont:
+                {
+                    obtenerproductos
+                }
+            })
+        }
+
+        return res.status(200).json({
+            ok: true,
+            msg:'Si hay productos en la base de datos',
             cont:
             {
                 obtenerproductos
             }
         })
+    } 
+    catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })    
     }
 
-    return res.status(200).json({
-        ok: true,
-        msg:'Si hay productos en la base de datos',
-        cont:
-        {
-            obtenerproductos
-        }
-    })
 });
 
 
 app.post('/', async (req,res) =>{
     
-    const body = req.body;
-    const productoBody = new ProductoModel(body);
-    const err = productoBody.validateSync();
+    try {
+        const body = req.body;
+        const productoBody = new ProductoModel(body);
+        const err = productoBody.validateSync();
 
-    if (err)
-    {
-        return res.status(400).json({
-            ok: false,
-            msg:'No se recibio algun campo favor de validar',
+        if (err)
+        {
+            return res.status(400).json({
+                ok: false,
+                msg:'No se recibio algun campo favor de validar',
+                cont:
+                {
+                    err
+                }
+            })
+        }
+
+        const registradoP = await productoBody.save();
+
+        return res.status(200).json({
+            ok: true,
+            msg:'El producto se registro correctamente',
             cont:
             {
-                err
+                registradoP
             }
         })
+    } 
+    catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })
     }
-
-    const registradoP = await productoBody.save();
-
-    return res.status(200).json({
-        ok: true,
-        msg:'El producto se registro correctamente',
-        cont:
-        {
-            registradoP
-        }
-    })
+    
    
 })
 
+
+app.put('/', async (req,res) =>{
+
+    try {
+        const _idProducto = req.query._idProducto;
+
+        //validamos que no enviemos in id, o que el id no tenga la longitud correcta
+        if (!_idProducto || _idProducto.length !=24)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    //utilizamos un operador ternarrio para validar cual de las 2 condiciones es la que se esta cumpliendo
+                    msg: _idProducto ? 'El id no es valido, se requiere un id de almenos 24 caracteres' : 'No se recibio un producto',
+                    cont:
+                    {
+                        _idProducto
+                    }
+                }) 
+        }
+
+        const encontroProducto = await ProductoModel.findOne({_id: _idProducto});
+        //console.log(encontoProducto);
+
+        if (!encontroProducto)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    msg: 'No se encuentra registrado el producto',
+                    cont:
+                    {
+                        _idProducto
+                    }
+                }) 
+
+        }
+
+        //solo regresa estadstica delo que realizo
+        // se puede realizar el update por cualquier campo
+        //const actualizarProducto = await ProductoModel.updateOne({_id: _idProducto}, { $set:{ ...req.body}});
+        // acknowledged: true,
+        // modifiedCount: 1,
+        // upsertedId: null,
+        // upsertedCount: 0,
+        // matchedCount: 1
+
+        //se realiza solo  por el id 
+        //regresa la informacion de lo que modifico
+        // acknowledged: true,
+        // modifiedCount: 1,
+        // upsertedId: null,
+        // upsertedCount: 0,
+        // matchedCount: 1
+        const actualizarProducto = await ProductoModel.findByIdAndUpdate(_idProducto, { $set:{ ...req.body}}, {new :true});
+        //console.log(actualizarProducto);
+
+        if (!actualizarProducto)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    msg: 'No se logro actualizar el producto',
+                    cont:
+                    {
+                        ...req.body
+                    }
+                }) 
+
+        }
+
+        return res.status(200).json(
+            {
+                ok:false,
+                msg: 'El producto se actualizo de manera existosa',
+                cont:
+                {
+                    productoAnterior: encontroProducto,
+                    productoActual: actualizarProducto  //req.body
+                }
+            })
+
+        
+    } 
+    catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })
+    }
+
+    
+    
+
+
+})
 
 /*app.get('/',(req,res)=>
 {

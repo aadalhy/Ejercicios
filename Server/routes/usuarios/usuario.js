@@ -2,99 +2,243 @@ const express = require('express');
 const app = express.Router();
 const UsuarioModel = require('../../models/usuario/usuario.model');
 const bcrypt = require('bcrypt');
+const { application } = require('express');
+const { findByIdAndUpdate, updateOne } = require('../../models/usuario/usuario.model');
 
 //let arrJsnUsuarios=[{ _id:1, strNombre:'Adalhy', strApellido:'Vazquez', strEmail:'adalhy@hotmail.com'}];
 //let arrJsnUsuarios=[];
 
 app.get('/', async (req,res) => {
+    try {
+        
+        const obtenerusuarios = await UsuarioModel.find({},{strContrasena:0});
+        
+        //console.log(obtenerusuarios);
 
-    const obtenerusuarios = await UsuarioModel.find({},{strContrasena:0});
-    
-    //console.log(obtenerusuarios);
+        if(!obtenerusuarios.length>0) 
+        {
+            return res.status(400).json({
+                ok: false,
+                msg:'No hay usuarios en la base de datos',
+                cont:
+                {
+                    obtenerusuarios
+                }
+            })
+        }
 
-    if(!obtenerusuarios.length>0) 
-    {
-        return res.status(400).json({
-            ok: false,
-            msg:'No hay usuarios en la base de datos',
+        return res.status(200).json({
+            ok: true,
+            msg:'Si hay usuarios en la base de datos',
+            count: obtenerusuarios.length,
             cont:
             {
                 obtenerusuarios
             }
         })
-    }
 
-    return res.status(200).json({
-        ok: true,
-        msg:'Si hay usuarios en la base de datos',
-        count: obtenerusuarios.length,
-        cont:
-        {
-            obtenerusuarios
-        }
-    })
+    } catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })
+    }
+    
 });
 
 app.post('/', async (req,res) =>
 {
-    // ? = !_undefined
-    // Ternadrio =  existe ? verdadero : si no existe
-    const body ={ ...req.body, strContrasena: req.body.strContrasena ? bcrypt.hashSync(req.body.strContrasena,10) : undefined };
-    
-    //ejemplo de como se encripta 
-    //const pwdEncrypt = bcrypt.hashSync(body.strContrasena,10);
+    try {
+        // ? = !_undefined
+        // Ternadrio =  existe ? verdadero : si no existe
+        const body ={ ...req.body, strContrasena: req.body.strContrasena ? bcrypt.hashSync(req.body.strContrasena,10) : undefined };
+        
+        //ejemplo de como se encripta 
+        //const pwdEncrypt = bcrypt.hashSync(body.strContrasena,10);
 
-    //const obtenerusuario = await UsuarioModel.find({strEmail:body.strEmail, strNombreUsuario:body.strNombreUsuario},{strContrasena:0});
-    const obtenerEmail = await UsuarioModel.find({strEmail:body.strEmail});
-    const obtenerNombreUsuario = await UsuarioModel.find({strNombreUsuario:body.strNombreUsuario});
+        //const obtenerusuario = await UsuarioModel.find({strEmail:body.strEmail, strNombreUsuario:body.strNombreUsuario},{strContrasena:0});
+        //retorna un objeto dentro del array
+        const obtenerEmail = await UsuarioModel.findOne({strEmail:body.strEmail});
+        const obtenerNombreUsuario = await UsuarioModel.findOne({strNombreUsuario:body.strNombreUsuario});
 
-    if(obtenerEmail.length>0)
-    {
-        return res.status(400).json({
-            ok:false,
-            msg:('El email ya se encuentra registrado'),
-            cont:{
-                body
-            }
-        })
-    }
+        //Regresa un array de objetos
+        //const obtenerEmail = await UsuarioModel.find({strEmail:body.strEmail});
+        //const obtenerNombreUsuario = await UsuarioModel.find({strNombreUsuario:body.strNombreUsuario});
+        
+        //se pueden leer la cantidad de registris q encuentra si no encuantra regresa null, undefined
+        //if(obtenerEmail.length>0)
 
-    if(obtenerNombreUsuario.length>0)
-    {
-        return res.status(400).json({
-            ok:false,
-            msg:('El nombre de usuario ya se encuentra registrado'),
-            cont:{
-                body
-            }
-        })
-    }
-
-
-    const bodyUsuario = new UsuarioModel(body);
-    const err = bodyUsuario.validateSync();
-
-    if (err) 
-    {
-        return res.status(400).json({
-            ok:false,
-            msg:('Falta uno o mas datos del usuario. Favor de completarlos'),
-            cont:{
-                err
-            }
-        })
-    }
-
-    const usuarioRegistrado = await bodyUsuario.save();
-
-    return res.status(200).json({
-        ok:true,
-        msg:('El usuario se registro correctamente'),
-        cont:{
-            usuarioRegistrado
+        //este if por que cambiamos a findOne
+        if(obtenerEmail)   //regresa true o false
+        {
+            return res.status(400).json({
+                ok:false,
+                msg:('El email ya se encuentra registrado'),
+                cont:{
+                    body
+                }
+            })
         }
-    })
 
+        //if(obtenerNombreUsuario.length>0)
+        if(obtenerNombreUsuario)
+        {
+            return res.status(400).json({
+                ok:false,
+                msg:('El nombre de usuario ya se encuentra registrado'),
+                cont:{
+                    body
+                }
+            })
+        }
+
+
+        const bodyUsuario = new UsuarioModel(body);
+        const err = bodyUsuario.validateSync();
+
+        if (err) 
+        {
+            return res.status(400).json({
+                ok:false,
+                msg:('Falta uno o mas datos del usuario. Favor de completarlos'),
+                cont:{
+                    err
+                }
+            })
+        }
+
+        const usuarioRegistrado = await bodyUsuario.save();
+
+        return res.status(200).json({
+            ok:true,
+            msg:('El usuario se registro correctamente'),
+            cont:{
+                usuarioRegistrado
+            }
+        })
+
+    } catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })
+    }
+    
+
+})
+
+app.put('/', async(req,res)=> {
+
+    try {
+        const _idUsuario = req.query._idUsuario;
+
+        //validamos que no enviemos in id, o que el id no tenga la longitud correcta
+        if (!_idUsuario || _idUsuario.length !=24)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    msg: _idUsuario ? 'El id no es valido, se requiere un id de almenos 24 caracteres' : 'No se recibio un usuario',
+                    cont:
+                    {
+                        _idUsuario
+                    }
+                }) 
+        }
+
+        const encontroUsuario = await UsuarioModel.findOne({_id: _idUsuario});
+       
+        if (!encontroUsuario)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    msg: 'No se encuentra registrado el usuario',
+                    cont:
+                    {
+                        _idUsuario
+                    }
+                }) 
+
+        }
+
+        const encontroNombreUsuario = await UsuarioModel.findOne({strNombreUsuario: req.body.strNombreUsuario, _id:{$ne: _idUsuario}},{strNombre:1, strNombreUsuario:1});
+
+        //console.log(encontroNombreUsuario);
+
+        if (encontroNombreUsuario)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    msg: 'El nombre de usuario ya se encuentra registrado',
+                    cont:
+                    {
+                        encontroNombreUsuario
+                    }
+                }) 
+
+        }
+        
+
+        //tambien se puede utilizar
+        //findByIdAndUpdate findOneAndUpdate(_idUsuario, { $set:{strNombre: req.body.strNombre, strApellido: req.body.strApellido, strDireccion: req.body.strDireccion}}, {new :true, upsert: true});
+        //updateOne({_id:_idUsuario}, { $set:{strNombre: req.body.strNombre, strApellido: req.body.strApellido, strDireccion: req.body.strDireccion}});
+        const actualizarUsuario = await UsuarioModel.findOneAndUpdate({_id:_idUsuario}, 
+            { $set:{strNombre: req.body.strNombre, 
+                strApellido: req.body.strApellido, 
+                strDireccion: req.body.strDireccion, 
+                strNombreUsuario: req.body.strNombreUsuario}}, 
+            {new :true, upsert: true});
+
+        if (!actualizarUsuario)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    msg: 'No se logro actualizar el usuario',
+                    cont:
+                    {
+                        ...req.body
+                    }
+                }) 
+
+        }
+
+        return res.status(200).json(
+            {
+                ok:true,
+                msg: 'El producto se actualizo de manera existosa',
+                cont:
+                {
+                    usuarioAnterior: encontroUsuario,
+                    usuarioActual: actualizarUsuario
+                }
+            })
+
+
+    } 
+    catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })
+    }
 })
 
 
