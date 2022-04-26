@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 let schemaProducto = mongoose.Schema({
+    blnEstado:
+    {
+        type: Boolean,
+        default: true
+    },
     strNombre:
     {
         type: String,

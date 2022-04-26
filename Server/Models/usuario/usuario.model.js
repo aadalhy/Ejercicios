@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 let schemaUsuario = mongoose.Schema({
+    blnEstado:
+    {
+        type: Boolean,
+        default: true
+    },
     strNombre:
     {
         type: String,

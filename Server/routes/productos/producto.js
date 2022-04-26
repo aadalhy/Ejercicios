@@ -1,4 +1,5 @@
 const express = require('express');
+const productoModel = require('../../models/producto/producto.model');
 const app = express.Router();
 const ProductoModel = require('../../models/producto/producto.model');
 
@@ -67,6 +68,22 @@ app.post('/', async (req,res) =>{
             })
         }
 
+        const obtenerProducto = await ProductoModel.findOne({strNombre:body.strNombre},{strNombre:1});
+        
+        if (obtenerProducto)
+            {
+                return res.status(400).json(
+                    {
+                        ok:false,
+                        msg: 'Ya se encuentra un producto con ese nombre',
+                        cont:
+                        {
+                           obtenerProducto
+                        }
+                    }) 
+
+            }
+
         const registradoP = await productoBody.save();
 
         return res.status(200).json({
@@ -99,7 +116,7 @@ app.put('/', async (req,res) =>{
     try {
         const _idProducto = req.query._idProducto;
 
-        //validamos que no enviemos in id, o que el id no tenga la longitud correcta
+        //validamos que se envie un id, o que el id no tenga la longitud correcta
         if (!_idProducto || _idProducto.length !=24)
         {
             return res.status(400).json(
@@ -166,7 +183,7 @@ app.put('/', async (req,res) =>{
 
         return res.status(200).json(
             {
-                ok:false,
+                ok:true,
                 msg: 'El producto se actualizo de manera existosa',
                 cont:
                 {
@@ -195,6 +212,86 @@ app.put('/', async (req,res) =>{
 
 })
 
+//los datos se envian preferentemente por query o params
+app.delete('/', async (req,res) =>{
+    
+    try {
+        //identificar el elemento a eliminar
+        const _idProducto = req.query._idProducto;
+
+        //validamos que se envie un id, o que el id no tenga la longitud correcta
+        if (!_idProducto || _idProducto.length !=24)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    //utilizamos un operador ternarrio para validar cual de las 2 condiciones es la que se esta cumpliendo
+                    msg: _idProducto ? 'El id no es valido, se requiere un id de almenos 24 caracteres' : 'No se recibio un producto',
+                    cont:
+                    {
+                        _idProducto
+                    }
+                }) 
+        }
+
+        const encontroProducto = await ProductoModel.findOne({_id: _idProducto, blnEstado:true});
+        
+        if (!encontroProducto)
+            {
+                return res.status(400).json(
+                    {
+                        ok:false,
+                        msg: 'No se encuentra registrado el producto',
+                        cont:
+                        {
+                            _idProducto: _idProducto
+                        }
+                    }) 
+
+            }
+
+        //Este elimina de manera definitva elproducto
+        //const eliminarProducto= await ProductoModel.findOneAndDelete({_id: _idProducto});
+
+        //Esta funcion solo cambia el estado del producto
+        const eliminarProducto= await ProductoModel.findOneAndUpdate({_id: _idProducto},{$set:{blnEstado:false}},{new:true});
+
+        if (!eliminarProducto)
+            {
+                return res.status(400).json(
+                    {
+                        ok:false,
+                        msg: 'No se logro desactivar el producto',
+                        cont:
+                        {
+                            ...req.body
+                        }
+                    }) 
+
+            }
+
+            return res.status(200).json(
+                {
+                    ok:true,
+                    msg: 'El producto se desactivar de manera existosa',
+                    cont:
+                    {
+                        productoEliminado: eliminarProducto  //req.body
+                    }
+                })    
+    } 
+    catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })
+    }
+})
 /*app.get('/',(req,res)=>
 {
     const arrProducto = arrJsnProductos;

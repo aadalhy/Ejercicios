@@ -241,6 +241,51 @@ app.put('/', async(req,res)=> {
     }
 })
 
+app.delete('/', async(req,res)=> {
+    try {
+        const _idUsuario = req.query._idUsuario;
+
+        //validamos que se envie un id, o que el id no tenga la longitud correcta
+        if (!_idUsuario || _idUsuario.length !=24)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    //utilizamos un operador ternarrio para validar cual de las 2 condiciones es la que se esta cumpliendo
+                    msg: _idUsuario ? 'El id no es valido, se requiere un id de almenos 24 caracteres' : 'No se recibio un id',
+                    cont:
+                    {
+                        _idUsuario
+                    }
+                }) 
+        }
+
+        //valido el que si manda algo distinto a false, lo hace true
+        const _blnEstado = req.query.blnEstado == "false" ? false : true ;
+
+            return res.status(200).json(
+                {
+                    ok:true,
+                    msg: 'El usuario se desactivo correctamente',
+                    cont:
+                    {
+                        _idUsuario
+                    }
+                })
+
+
+    } catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })
+    }
+})
 
 /*
 app.get('/',(req,res)=>
