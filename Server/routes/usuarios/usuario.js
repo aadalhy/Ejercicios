@@ -4,6 +4,7 @@ const UsuarioModel = require('../../models/usuario/usuario.model');
 const bcrypt = require('bcrypt');
 const { application } = require('express');
 const { findByIdAndUpdate, updateOne } = require('../../models/usuario/usuario.model');
+const usuarioModel = require('../../models/usuario/usuario.model');
 
 //let arrJsnUsuarios=[{ _id:1, strNombre:'Adalhy', strApellido:'Vazquez', strEmail:'adalhy@hotmail.com'}];
 //let arrJsnUsuarios=[];
@@ -244,7 +245,8 @@ app.put('/', async(req,res)=> {
 app.delete('/', async(req,res)=> {
     try {
         const _idUsuario = req.query._idUsuario;
-
+        //valido el que si manda algo distinto a false, lo hace true
+        const _blnEstado = req.query.blnEstado == "false" ? false : true ;
         //validamos que se envie un id, o que el id no tenga la longitud correcta
         if (!_idUsuario || _idUsuario.length !=24)
         {
@@ -260,18 +262,30 @@ app.delete('/', async(req,res)=> {
                 }) 
         }
 
-        //valido el que si manda algo distinto a false, lo hace true
-        const _blnEstado = req.query.blnEstado == "false" ? false : true ;
+        const modificarEstado= await UsuarioModel.findOneAndUpdate({_id: _idUsuario}, {$set: {blnEstado: _blnEstado}},{new:true})        
 
-            return res.status(200).json(
-                {
-                    ok:true,
-                    msg: 'El usuario se desactivo correctamente',
-                    cont:
+        if (!modificarEstado)
+            {
+                return res.status(400).json(
                     {
-                        _idUsuario
-                    }
-                })
+                        ok:false,
+                        msg: 'No se realizo ninguna actividad',
+                        cont:
+                        {
+                            ...req.query
+                        }
+                    }) 
+            }
+
+        return res.status(200).json(
+            {
+                ok:true,
+                msg: _blnEstado == true ? 'Se activo el usuario de manera existosa' : 'El usuario se desactivo de manera exitosa' ,
+                cont:
+                {
+                    modificarEstado
+                }
+            })
 
 
     } catch (error) {
