@@ -20,6 +20,7 @@ app.get('/', async (req,res) => {
             return res.status(400).json({
                 ok: false,
                 msg:'No hay productos en la base de datos',
+                count: obtenerproductos.length,
                 cont:
                 {
                     obtenerproductos
@@ -30,6 +31,7 @@ app.get('/', async (req,res) => {
         return res.status(200).json({
             ok: true,
             msg:'Si hay productos en la base de datos',
+            count: obtenerproductos.length,
             cont:
             {
                 obtenerproductos
@@ -117,7 +119,6 @@ app.put('/', async (req,res) =>{
 
     try {
         const _idProducto = req.query._idProducto;
-        const _blnEstado = req.query.blnEstado == "false" ? false : true ;
 
         //validamos que se envie un id, o que el id no tenga la longitud correcta
         if (!_idProducto || _idProducto.length !=24)
@@ -146,6 +147,24 @@ app.put('/', async (req,res) =>{
                     cont:
                     {
                         _idProducto
+                    }
+                }) 
+
+        }
+
+        const encontroNombreProducto = await UsuarioModel.findOne({strNombre: req.body.strNombre, _id:{$ne: _idProducto}},{strNombre:1, strDescripcion:1});
+
+        //console.log(encontroNombreUsuario);
+
+        if (encontroNombreProducto)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    msg: 'El nombre del producto ya se encuentra registrado',
+                    cont:
+                    {
+                        encontroNombreProducto
                     }
                 }) 
 
