@@ -158,7 +158,7 @@ app.put('/', async(req,res)=> {
                 }) 
         }
 
-        const encontroUsuario = await UsuarioModel.findOne({_id: _idUsuario, blnEstado:true});
+        const encontroUsuario = await UsuarioModel.findOne({_id: _idUsuario});
        
         if (!encontroUsuario)
         {

@@ -13,7 +13,12 @@ app.get('/', async (req,res) => {
         const _blnEstado = req.query.blnEstado == "false" ? false : true ;
         const obtenerproductos = await ProductoModel.find({blnEstado: _blnEstado});
 
-        //console.log(obtenerproductos);
+        //funcion agregate
+        const obtenerproductosAgregate = await ProductoModel.aggregate([
+            {$project: {strNombre:1, nmbPrecio:1, blnEstado:1} },
+            {$match: {$expr: {$eq: ["$blnEstado", _blnEstado] } }},
+        ]);
+
 
         if(!obtenerproductos.length>0) 
         {
@@ -23,7 +28,8 @@ app.get('/', async (req,res) => {
                 count: obtenerproductos.length,
                 cont:
                 {
-                    obtenerproductos
+                    obtenerproductos,
+                    obtenerproductosAgregate
                 }
             })
         }
@@ -34,7 +40,8 @@ app.get('/', async (req,res) => {
             count: obtenerproductos.length,
             cont:
             {
-                obtenerproductos
+                obtenerproductos,
+                obtenerproductosAgregate
             }
         })
     } 
@@ -152,7 +159,7 @@ app.put('/', async (req,res) =>{
 
         }
 
-        const encontroNombreProducto = await UsuarioModel.findOne({strNombre: req.body.strNombre, _id:{$ne: _idProducto}},{strNombre:1, strDescripcion:1});
+        const encontroNombreProducto = await ProductoModel.findOne({strNombre: req.body.strNombre, _id:{$ne: _idProducto}},{strNombre:1, strDescripcion:1});
 
         //console.log(encontroNombreUsuario);
 
@@ -256,7 +263,7 @@ app.delete('/', async (req,res) =>{
                 }) 
         }
 
-        const encontroProducto = await ProductoModel.findOne({_id: _idProducto, blnEstado:true});
+        const encontroProducto = await ProductoModel.findOne({_id: _idProducto});
         
         if (!encontroProducto)
             {
@@ -295,7 +302,7 @@ app.delete('/', async (req,res) =>{
             return res.status(200).json(
                 {
                     ok:true,
-                    msg: _blnEstado == true ? 'Se activo el usuario de manera existosa' : 'El usuario se desactivo de manera exitosa' ,
+                    msg: _blnEstado == true ? 'Se activo el producto de manera existosa' : 'El producto se desactivo de manera exitosa' ,
                     cont:
                     {
                         productoEliminado: eliminarProducto  //req.body
@@ -314,6 +321,9 @@ app.delete('/', async (req,res) =>{
             })
     }
 })
+
+
+
 /*app.get('/',(req,res)=>
 {
     const arrProducto = arrJsnProductos;
