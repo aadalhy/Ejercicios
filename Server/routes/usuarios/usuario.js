@@ -1,21 +1,308 @@
 const express = require('express');
 const app = express.Router();
+const UsuarioModel = require('../../models/usuario/usuario.model');
+const bcrypt = require('bcrypt');
+const { application } = require('express');
+const { findByIdAndUpdate, updateOne } = require('../../models/usuario/usuario.model');
+const usuarioModel = require('../../models/usuario/usuario.model');
 
 //let arrJsnUsuarios=[{ _id:1, strNombre:'Adalhy', strApellido:'Vazquez', strEmail:'adalhy@hotmail.com'}];
-let arrJsnUsuarios=[];
+//let arrJsnUsuarios=[];
 
-/*ejmeplo de desclaracion de variables
-let arrUsuarios;
-let strNombre;
-let nmbCantidad;
-let jsnNombreCompleto;
-let blnEstado;
-let datFecha;*/
+app.get('/', async (req,res) => {
+    try {
+        const _blnEstado = req.query.blnEstado == "false" ? false : true ;
+        const obtenerusuarios = await UsuarioModel.find({blnEstado: _blnEstado},{strContrasena:0});
+        
+        //console.log(obtenerusuarios);
 
-//Ejemplo para descargar archivo
-//const path = require('path');
-//const rutadescarga=path.resolve (__dirname,'../../assets/index.html');
+        if(!obtenerusuarios.length>0) 
+        {
+            return res.status(400).json({
+                ok: false,
+                msg:'No hay usuarios en la base de datos',
+                count: obtenerusuarios.length,
+                cont:
+                {
+                    obtenerusuarios
+                }
+            })
+        }
 
+        return res.status(200).json({
+            ok: true,
+            msg:'Si hay usuarios en la base de datos',
+            count: obtenerusuarios.length,
+            cont:
+            {
+                obtenerusuarios
+            }
+        })
+
+    } catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })
+    }
+    
+});
+
+app.post('/', async (req,res) =>
+{
+    try {
+        // ? = !_undefined
+        // Ternadrio =  existe ? verdadero : si no existe
+        const body ={ ...req.body, strContrasena: req.body.strContrasena ? bcrypt.hashSync(req.body.strContrasena,10) : undefined };
+        
+        //ejemplo de como se encripta 
+        //const pwdEncrypt = bcrypt.hashSync(body.strContrasena,10);
+
+        //const obtenerusuario = await UsuarioModel.find({strEmail:body.strEmail, strNombreUsuario:body.strNombreUsuario},{strContrasena:0});
+        //retorna un objeto dentro del array
+        const obtenerEmail = await UsuarioModel.findOne({strEmail:body.strEmail});
+        const obtenerNombreUsuario = await UsuarioModel.findOne({strNombreUsuario:body.strNombreUsuario});
+
+        //Regresa un array de objetos
+        //const obtenerEmail = await UsuarioModel.find({strEmail:body.strEmail});
+        //const obtenerNombreUsuario = await UsuarioModel.find({strNombreUsuario:body.strNombreUsuario});
+        
+        //se pueden leer la cantidad de registris q encuentra si no encuantra regresa null, undefined
+        //if(obtenerEmail.length>0)
+
+        //este if por que cambiamos a findOne
+        if(obtenerEmail)   //regresa true o false
+        {
+            return res.status(400).json({
+                ok:false,
+                msg:('El email ya se encuentra registrado'),
+                cont:{
+                    body
+                }
+            })
+        }
+
+        //if(obtenerNombreUsuario.length>0)
+        if(obtenerNombreUsuario)
+        {
+            return res.status(400).json({
+                ok:false,
+                msg:('El nombre de usuario ya se encuentra registrado'),
+                cont:{
+                    body
+                }
+            })
+        }
+
+
+        const bodyUsuario = new UsuarioModel(body);
+        const err = bodyUsuario.validateSync();
+
+        if (err) 
+        {
+            return res.status(400).json({
+                ok:false,
+                msg:('Falta uno o mas datos del usuario. Favor de completarlos'),
+                cont:{
+                    err
+                }
+            })
+        }
+
+        const usuarioRegistrado = await bodyUsuario.save();
+
+        return res.status(200).json({
+            ok:true,
+            msg:('El usuario se registro correctamente'),
+            cont:{
+                usuarioRegistrado
+            }
+        })
+
+    } catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })
+    }
+    
+
+})
+
+app.put('/', async(req,res)=> {
+
+    try {
+        const _idUsuario = req.query._idUsuario;
+
+        //validamos que no enviemos in id, o que el id no tenga la longitud correcta
+        if (!_idUsuario || _idUsuario.length !=24)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    msg: _idUsuario ? 'El id no es valido, se requiere un id de almenos 24 caracteres' : 'No se recibio un usuario',
+                    cont:
+                    {
+                        _idUsuario
+                    }
+                }) 
+        }
+
+        const encontroUsuario = await UsuarioModel.findOne({_id: _idUsuario, blnEstado:true});
+       
+        if (!encontroUsuario)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    msg: 'No se encuentra registrado el usuario',
+                    cont:
+                    {
+                        _idUsuario
+                    }
+                }) 
+
+        }
+
+        const encontroNombreUsuario = await UsuarioModel.findOne({strNombreUsuario: req.body.strNombreUsuario, _id:{$ne: _idUsuario}},{strNombre:1, strNombreUsuario:1});
+
+        //console.log(encontroNombreUsuario);
+
+        if (encontroNombreUsuario)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    msg: 'El nombre de usuario ya se encuentra registrado',
+                    cont:
+                    {
+                        encontroNombreUsuario
+                    }
+                }) 
+
+        }
+        
+
+        //tambien se puede utilizar
+        //findByIdAndUpdate findOneAndUpdate(_idUsuario, { $set:{strNombre: req.body.strNombre, strApellido: req.body.strApellido, strDireccion: req.body.strDireccion}}, {new :true, upsert: true});
+        //updateOne({_id:_idUsuario}, { $set:{strNombre: req.body.strNombre, strApellido: req.body.strApellido, strDireccion: req.body.strDireccion}});
+        const actualizarUsuario = await UsuarioModel.findOneAndUpdate({_id:_idUsuario}, 
+            { $set:{strNombre: req.body.strNombre, 
+                strApellido: req.body.strApellido, 
+                strDireccion: req.body.strDireccion, 
+                strNombreUsuario: req.body.strNombreUsuario}}, 
+            {new :true, upsert: true});
+
+        if (!actualizarUsuario)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    msg: 'No se logro actualizar el usuario',
+                    cont:
+                    {
+                        ...req.body
+                    }
+                }) 
+
+        }
+
+        return res.status(200).json(
+            {
+                ok:true,
+                msg: 'El usuario se actualizo de manera existosa',
+                cont:
+                {
+                    usuarioAnterior: encontroUsuario,
+                    usuarioActual: actualizarUsuario
+                }
+            })
+
+
+    } 
+    catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })
+    }
+})
+
+app.delete('/', async(req,res)=> {
+    try {
+        const _idUsuario = req.query._idUsuario;
+        //valido el que si manda algo distinto a false, lo hace true
+        const _blnEstado = req.query.blnEstado == "false" ? false : true ;
+        //validamos que se envie un id, o que el id no tenga la longitud correcta
+        if (!_idUsuario || _idUsuario.length !=24)
+        {
+            return res.status(400).json(
+                {
+                    ok:false,
+                    //utilizamos un operador ternarrio para validar cual de las 2 condiciones es la que se esta cumpliendo
+                    msg: _idUsuario ? 'El id no es valido, se requiere un id de almenos 24 caracteres' : 'No se recibio un id',
+                    cont:
+                    {
+                        _idUsuario
+                    }
+                }) 
+        }
+
+        const modificarEstado= await UsuarioModel.findOneAndUpdate({_id: _idUsuario}, {$set: {blnEstado: _blnEstado}},{new:true})        
+
+        if (!modificarEstado)
+            {
+                return res.status(400).json(
+                    {
+                        ok:false,
+                        msg: 'No se realizo ninguna actividad',
+                        cont:
+                        {
+                            ...req.query
+                        }
+                    }) 
+            }
+
+        return res.status(200).json(
+            {
+                ok:true,
+                msg: _blnEstado == true ? 'Se activo el usuario de manera existosa' : 'El usuario se desactivo de manera exitosa' ,
+                cont:
+                {
+                    modificarEstado
+                }
+            })
+
+
+    } catch (error) {
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
+                cont:
+                {
+                    error
+                }
+            })
+    }
+})
+
+/*
 app.get('/',(req,res)=>
 {
     const arrUsuarios= arrJsnUsuarios;
@@ -48,6 +335,50 @@ app.get('/',(req,res)=>
         //ejemplo de otra forma de enviar una respuesta
         //return res.status(300).send('<h5>Hola soy Alejandro</h5>')
        // return res.download(rutadescarga,'document.html');
+    
+})
+
+app.get('/obtenerusuario',(req,res)=>
+{
+    const _idUsuario = Number(req.query._idUsuario);
+
+    if(!_idUsuario)
+    {
+        return res.status(400).json
+            ({
+                ok:false,
+                msg:'El usuario no es valido',
+                cont:
+                {
+                    _idUsuario
+                }
+            })
+    }
+
+    const encuentra = arrJsnUsuarios.find(usuario => usuario._id === _idUsuario);
+
+    if(!encuentra)
+    {
+        return res.status(400).json(
+            {
+                ok:false,
+                msg: 'El usuario no existe',
+                cont:
+                {
+                    _idUsuario
+                }
+            })
+    }
+    
+    return res.status(200).json(
+        {
+            ok:true,
+            msg: 'El usuario si existe',
+            cont:
+            {
+                encuentra
+            }
+        })   
     
 })
 
@@ -206,6 +537,7 @@ app.delete('/',(req,res) =>
 
             //arrJsnUsuarios.push(actualizar);
 
+            
             return res.status(200).json
             ({
                 ok:true,
@@ -244,5 +576,5 @@ app.delete('/',(req,res) =>
         
     }
 })
-
+*/
 module.exports = app;
