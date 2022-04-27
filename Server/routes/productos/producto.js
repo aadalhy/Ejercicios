@@ -8,8 +8,10 @@ const ProductoModel = require('../../models/producto/producto.model');
 
 app.get('/', async (req,res) => {
 
+    
     try {
-        const obtenerproductos = await ProductoModel.find();
+        const _blnEstado = req.query.blnEstado == "false" ? false : true ;
+        const obtenerproductos = await ProductoModel.find({blnEstado: _blnEstado});
 
         //console.log(obtenerproductos);
 
@@ -115,6 +117,7 @@ app.put('/', async (req,res) =>{
 
     try {
         const _idProducto = req.query._idProducto;
+        const _blnEstado = req.query.blnEstado == "false" ? false : true ;
 
         //validamos que se envie un id, o que el id no tenga la longitud correcta
         if (!_idProducto || _idProducto.length !=24)
@@ -131,7 +134,7 @@ app.put('/', async (req,res) =>{
                 }) 
         }
 
-        const encontroProducto = await ProductoModel.findOne({_id: _idProducto});
+        const encontroProducto = await ProductoModel.findOne({_id: _idProducto, blnEstado:true});
         //console.log(encontoProducto);
 
         if (!encontroProducto)
@@ -218,7 +221,7 @@ app.delete('/', async (req,res) =>{
     try {
         //identificar el elemento a eliminar
         const _idProducto = req.query._idProducto;
-
+        const _blnEstado = req.query.blnEstado == "false" ? false : true ;
         //validamos que se envie un id, o que el id no tenga la longitud correcta
         if (!_idProducto || _idProducto.length !=24)
         {
@@ -254,14 +257,14 @@ app.delete('/', async (req,res) =>{
         //const eliminarProducto= await ProductoModel.findOneAndDelete({_id: _idProducto});
 
         //Esta funcion solo cambia el estado del producto
-        const eliminarProducto= await ProductoModel.findOneAndUpdate({_id: _idProducto},{$set:{blnEstado:false}},{new:true});
+        const eliminarProducto= await ProductoModel.findOneAndUpdate({_id: _idProducto},{$set:{blnEstado:_blnEstado}},{new:true});
 
         if (!eliminarProducto)
             {
                 return res.status(400).json(
                     {
                         ok:false,
-                        msg: 'No se logro desactivar el producto',
+                        msg: 'No se realiza ninguna modificacion' ,
                         cont:
                         {
                             ...req.body
@@ -273,7 +276,7 @@ app.delete('/', async (req,res) =>{
             return res.status(200).json(
                 {
                     ok:true,
-                    msg: 'El producto se desactivar de manera existosa',
+                    msg: _blnEstado == true ? 'Se activo el usuario de manera existosa' : 'El usuario se desactivo de manera exitosa' ,
                     cont:
                     {
                         productoEliminado: eliminarProducto  //req.body

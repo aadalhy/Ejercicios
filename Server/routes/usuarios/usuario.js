@@ -11,8 +11,8 @@ const usuarioModel = require('../../models/usuario/usuario.model');
 
 app.get('/', async (req,res) => {
     try {
-        
-        const obtenerusuarios = await UsuarioModel.find({},{strContrasena:0});
+        const _blnEstado = req.query.blnEstado == "false" ? false : true ;
+        const obtenerusuarios = await UsuarioModel.find({blnEstado: _blnEstado},{strContrasena:0});
         
         //console.log(obtenerusuarios);
 
@@ -21,6 +21,7 @@ app.get('/', async (req,res) => {
             return res.status(400).json({
                 ok: false,
                 msg:'No hay usuarios en la base de datos',
+                count: obtenerusuarios.length,
                 cont:
                 {
                     obtenerusuarios
@@ -157,7 +158,7 @@ app.put('/', async(req,res)=> {
                 }) 
         }
 
-        const encontroUsuario = await UsuarioModel.findOne({_id: _idUsuario});
+        const encontroUsuario = await UsuarioModel.findOne({_id: _idUsuario, blnEstado:true});
        
         if (!encontroUsuario)
         {
@@ -219,7 +220,7 @@ app.put('/', async(req,res)=> {
         return res.status(200).json(
             {
                 ok:true,
-                msg: 'El producto se actualizo de manera existosa',
+                msg: 'El usuario se actualizo de manera existosa',
                 cont:
                 {
                     usuarioAnterior: encontroUsuario,
