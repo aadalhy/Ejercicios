@@ -158,7 +158,7 @@ app.put('/', async(req,res)=> {
                 }) 
         }
 
-        const encontroUsuario = await UsuarioModel.findOne({_id: _idUsuario});
+        const encontroUsuario = await UsuarioModel.findOne({_id: _idUsuario, blnEstado:true});
        
         if (!encontroUsuario)
         {
@@ -200,7 +200,8 @@ app.put('/', async(req,res)=> {
             { $set:{strNombre: req.body.strNombre, 
                 strApellido: req.body.strApellido, 
                 strDireccion: req.body.strDireccion, 
-                strNombreUsuario: req.body.strNombreUsuario}}, 
+                strNombreUsuario: req.body.strNombreUsuario,
+                idEmpresa: req.body.idEmpresa}}, 
             {new :true, upsert: true});
 
         if (!actualizarUsuario)

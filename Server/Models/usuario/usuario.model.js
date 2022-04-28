@@ -35,6 +35,11 @@ let schemaUsuario = mongoose.Schema({
     {
         type: String,
         required:[true,'No se recibio el nombre de usuario. Favor de ingresarlo']
+    },
+    idEmpresa:
+    {
+        type: mongoose.Types.ObjectId,
+        required:[true,'No se recibio el id de la Empresa. Favor de ingresarlo']
     }
 });
 
