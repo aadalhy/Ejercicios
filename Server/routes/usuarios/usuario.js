@@ -13,7 +13,17 @@ app.get('/', async (req,res) => {
     try {
         const _blnEstado = req.query.blnEstado == "false" ? false : true ;
         const obtenerusuarios = await UsuarioModel.find({blnEstado: _blnEstado},{strContrasena:0});
-        
+        const obtenerusuariosAgregate = await UsuarioModel.aggregate([
+            {$match: {$expr: {$eq: ["$blnEstado", _blnEstado] } }},
+            {$lookup: 
+                {
+                    from:"empresas",
+                    localField:"idEmpresa",
+                    foreignField:"_id",
+                    as: "Datos_Empresa: "
+                }
+            },
+        ]);
         //console.log(obtenerusuarios);
 
         if(!obtenerusuarios.length>0) 
@@ -24,7 +34,8 @@ app.get('/', async (req,res) => {
                 count: obtenerusuarios.length,
                 cont:
                 {
-                    obtenerusuarios
+                    //obtenerusuarios,
+                    obtenerusuariosAgregate
                 }
             })
         }
@@ -35,7 +46,8 @@ app.get('/', async (req,res) => {
             count: obtenerusuarios.length,
             cont:
             {
-                obtenerusuarios
+                //obtenerusuarios,
+                obtenerusuariosAgregate
             }
         })
 
