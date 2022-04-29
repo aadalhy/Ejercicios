@@ -2,11 +2,12 @@ const express = require('express');
 const productoModel = require('../../models/producto/producto.model');
 const app = express.Router();
 const ProductoModel = require('../../models/producto/producto.model');
+const { verificarAcceso } = require('../../middlewares/permisos');
 
 //const arrJsnProductos=[{ _id:0, strNombre:'Adalh', nmbCantidad:0, strDescripcion:'', nmbPrecio:0}];
 //let arrJsnProductos=[];
 
-app.get('/', async (req,res) => {
+app.get('/',  async (req,res) => {
 
     
     try {
@@ -60,7 +61,7 @@ app.get('/', async (req,res) => {
 });
 
 
-app.post('/', async (req,res) =>{
+app.post('/', verificarAcceso, async (req,res) =>{
     
     try {
         const body = req.body;
@@ -122,7 +123,7 @@ app.post('/', async (req,res) =>{
 })
 
 
-app.put('/', async (req,res) =>{
+app.put('/', verificarAcceso, async (req,res) =>{
 
     try {
         const _idProducto = req.query._idProducto;
@@ -242,7 +243,7 @@ app.put('/', async (req,res) =>{
 })
 
 //los datos se envian preferentemente por query o params
-app.delete('/', async (req,res) =>{
+app.delete('/', verificarAcceso, async (req,res) =>{
     
     try {
         //identificar el elemento a eliminar

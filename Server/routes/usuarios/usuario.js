@@ -2,14 +2,18 @@ const express = require('express');
 const app = express.Router();
 const UsuarioModel = require('../../models/usuario/usuario.model');
 const bcrypt = require('bcrypt');
-const { application } = require('express');
-const { findByIdAndUpdate, updateOne } = require('../../models/usuario/usuario.model');
 const usuarioModel = require('../../models/usuario/usuario.model');
+//solo quiero la funcion de verificarAcceso del archivo permisos
+const { verificarAcceso } = require('../../middlewares/permisos');
+
+//no se necesitan
+// const { application } = require('express');
+// const { findByIdAndUpdate, updateOne } = require('../../models/usuario/usuario.model');
 
 //let arrJsnUsuarios=[{ _id:1, strNombre:'Adalhy', strApellido:'Vazquez', strEmail:'adalhy@hotmail.com'}];
 //let arrJsnUsuarios=[];
 
-app.get('/', async (req,res) => {
+app.get('/', verificarAcceso, async (req,res) => {
     try {
         const _blnEstado = req.query.blnEstado == "false" ? false : true ;
         const obtenerusuarios = await UsuarioModel.find({blnEstado: _blnEstado},{strContrasena:0});
@@ -20,9 +24,20 @@ app.get('/', async (req,res) => {
                     from:"empresas",
                     localField:"idEmpresa",
                     foreignField:"_id",
-                    as: "Datos_Empresa: "
+                    as: "Datos_Empresa"
                 }
             },
+            {$project:
+                {
+                    strNombre:1,
+                    strApellido:1,
+                    strDireccion:1,
+                    strEmail:1,
+                    empresa: {
+                        $arrayElemAt:['$Datos_Empresa',0]
+                    }
+                }
+            }
         ]);
         //console.log(obtenerusuarios);
 
@@ -65,7 +80,7 @@ app.get('/', async (req,res) => {
     
 });
 
-app.post('/', async (req,res) =>
+app.post('/', verificarAcceso, async (req,res) =>
 {
     try {
         // ? = !_undefined
@@ -151,7 +166,7 @@ app.post('/', async (req,res) =>
 
 })
 
-app.put('/', async(req,res)=> {
+app.put('/', verificarAcceso, async(req,res)=> {
 
     try {
         const _idUsuario = req.query._idUsuario;
@@ -256,7 +271,7 @@ app.put('/', async(req,res)=> {
     }
 })
 
-app.delete('/', async(req,res)=> {
+app.delete('/', verificarAcceso, async(req,res)=> {
     try {
         const _idUsuario = req.query._idUsuario;
         //valido el que si manda algo distinto a false, lo hace true

@@ -2,8 +2,9 @@ const express = require('express');
 const empresaModel = require('../../models/empresa/empresa.model');
 const app = express.Router();
 const EmpresaModel = require('../../models/empresa/empresa.model');
+const { verificarAcceso } = require('../../middlewares/permisos');
 
-app.get('/', async (req,res) => {
+app.get('/',  async (req,res) => {
     
     try {
         const _blnEstado = req.query.blnEstado == "false" ? false : true ;
@@ -55,7 +56,7 @@ app.get('/', async (req,res) => {
 
 });
 
-app.post('/', async (req,res) =>{
+app.post('/', verificarAcceso, async (req,res) =>{
     
     try {
         const body = req.body;
@@ -116,7 +117,7 @@ app.post('/', async (req,res) =>{
    
 })
 
-app.put('/', async (req,res) =>{
+app.put('/', verificarAcceso, async (req,res) =>{
 
     try {
         const _idEmpresa = req.query._idEmpresa;
@@ -214,7 +215,7 @@ app.put('/', async (req,res) =>{
 
 })
 
-app.delete('/', async (req,res) =>{
+app.delete('/', verificarAcceso, async (req,res) =>{
     
     try {
         //identificar el elemento a eliminar
