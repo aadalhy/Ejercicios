@@ -5,7 +5,7 @@ const verificarAcceso = async (req , res, next) => {
     try {
         //console.log('estoy en el middleware');
         const token = req.get('token');
-        const ruta = req.url
+        const ruta = req.originalUrl;
 
         if(!token)
         {
@@ -24,6 +24,7 @@ const verificarAcceso = async (req , res, next) => {
             if(err)
             {
                //console.log(err.name);
+               console.log("No se permitio el acceso a la ruta: ",(ruta).red); 
                return res.status(400).json(
                 {
                     ok:false,
@@ -36,7 +37,7 @@ const verificarAcceso = async (req , res, next) => {
             }
             
             //console.log(decoded);
-            console.log("Se permitio el acceso a la ruta:")
+            console.log("Se permitio el acceso a la ruta: " ,(ruta).green);
             next();
         })
 
