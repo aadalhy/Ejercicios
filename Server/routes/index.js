@@ -5,6 +5,7 @@ app.use('/auth',require('./auth/login'));
 app.use('/usuario',require('./usuarios/usuario'));
 app.use('/producto',require('./productos/producto'));
 app.use('/empresa',require('./empresa/empresa'));
-
+app.use('/permiso/api',require('./permiso/api'));
+app.use('/permiso/rol', require('./permiso/rol'));
 
 module.exports = app;

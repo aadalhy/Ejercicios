@@ -1,3 +1,4 @@
+const { type } = require("express/lib/response");
 const mongoose = require("mongoose");
 
 let schemaRol = mongoose.Schema({
@@ -11,12 +12,12 @@ let schemaRol = mongoose.Schema({
         type: String,
         required:[true,'No se recibio la Descripcion. Favor de ingresarlo']
     },
-    arrObIjdApis: [],
     blnRolDefault:
     {
         type: Boolean,
         default: false
-    }
+    },
+    arrObjIdApis:[mongoose.Types.ObjectId]
 })
 
-module.exports = mongoose.model('api',schemaRol);
+module.exports = mongoose.model('rol',schemaRol);
