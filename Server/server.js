@@ -4,9 +4,10 @@ require('colors');
 const express = require('express');
 const mongoose = require('mongoose');
 const app =express();
+const fileUpload = require('express-fileupload');
+app.use(fileUpload());  //debe de ir abajo del requiere file-upload
 
 app.use(express.urlencoded({ extended:true }));
-
 app.use('/api',require('./routes/index'));
 
 //console.log(process.env.URLDB,'URLDB')

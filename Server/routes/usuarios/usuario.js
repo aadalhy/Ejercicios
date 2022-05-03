@@ -1,10 +1,12 @@
 const express = require('express');
 const app = express.Router();
 const UsuarioModel = require('../../models/usuario/usuario.model');
+const RolModel = require('../../models/permiso/rol.model');
 const bcrypt = require('bcrypt');
-const usuarioModel = require('../../models/usuario/usuario.model');
 //solo quiero la funcion de verificarAcceso del archivo permisos
 const { verificarAcceso } = require('../../middlewares/permisos');
+const cargarArchivo = require('../../library/cargarArchivos');
+
 
 //no se necesitan
 // const { application } = require('express');
@@ -67,13 +69,14 @@ app.get('/', verificarAcceso, async (req,res) => {
         })
 
     } catch (error) {
+        const err = Error(error);
         return res.status(500).json(
             {
                 ok:false,
                 msg: 'Error en el servidor',
                 cont:
                 {
-                    error
+                    error:err.message ? err.message : err.name ? err.name : err
                 }
             })
     }
@@ -83,6 +86,7 @@ app.get('/', verificarAcceso, async (req,res) => {
 app.post('/', verificarAcceso, async (req,res) =>
 {
     try {
+        
         // ? = !_undefined
         // Ternadrio =  existe ? verdadero : si no existe
         const body ={ ...req.body, strContrasena: req.body.strContrasena ? bcrypt.hashSync(req.body.strContrasena,10) : undefined };
@@ -141,6 +145,32 @@ app.post('/', verificarAcceso, async (req,res) =>
             })
         }
 
+        //valido si se envio un archivo
+        if(req.files)
+        {
+            if(!req.files.strImagen)
+            {
+                return res.status(400).json({
+                    ok:false,
+                    msg:('No se recibio un archivo strImagen. Favor de ingresarlo'),
+                    cont:{
+                        
+                    }
+                })
+            }
+            //console.log(req.files, 'tiene archivo');
+            bodyUsuario.strImagen = await cargarArchivo.subirArchivo(req.files.strImagen,'usuario',['image/png','image/jpg','image/jpeg']);
+            //console.log(bodyUsuario.strImagen)
+        }
+
+        if (!req.body.idObjRol) 
+        {
+            const rolDefault =  await RolModel.findOne({blnRolDefault:true});
+            //console.log(rolDefault);
+            bodyUsuario.idObjRol = rolDefault.id;
+        }
+
+        
         const usuarioRegistrado = await bodyUsuario.save();
 
         return res.status(200).json({
@@ -152,13 +182,15 @@ app.post('/', verificarAcceso, async (req,res) =>
         })
 
     } catch (error) {
+        //console.log(error);
+        const err = Error(error);
         return res.status(500).json(
             {
                 ok:false,
                 msg: 'Error en el servidor',
                 cont:
                 {
-                    error
+                    error:err.message ? err.message : err.name ? err.name : err
                 }
             })
     }
@@ -259,13 +291,14 @@ app.put('/', verificarAcceso, async(req,res)=> {
 
     } 
     catch (error) {
+        const err = Error(error);
         return res.status(500).json(
             {
                 ok:false,
                 msg: 'Error en el servidor',
                 cont:
                 {
-                    error
+                    error:err.message ? err.message : err.name ? err.name : err
                 }
             })
     }
@@ -318,13 +351,14 @@ app.delete('/', verificarAcceso, async(req,res)=> {
 
 
     } catch (error) {
+        const err = Error(error);
         return res.status(500).json(
             {
                 ok:false,
                 msg: 'Error en el servidor',
                 cont:
                 {
-                    error
+                    error:err.message ? err.message : err.name ? err.name : err
                 }
             })
     }

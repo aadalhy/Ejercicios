@@ -17,6 +17,11 @@ let schemaRol = mongoose.Schema({
         type: Boolean,
         default: false
     },
+    blnEstado:
+    {
+        type: Boolean,
+        default: true
+    },
     arrObjIdApis:[mongoose.Types.ObjectId]
 })
 

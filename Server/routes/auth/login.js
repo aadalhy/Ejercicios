@@ -69,15 +69,16 @@ app.post('/login', async (req,res) =>{
             })
     } 
     catch (error) {
+        const err = Error(error);
         return res.status(500).json(
             {
                 ok:false,
                 msg: 'Error en el servidor',
                 cont:
                 {
-                    error
+                    error:err.message ? err.message : err.name ? err.name : err
                 }
-            })    
+            })
     }
     
 

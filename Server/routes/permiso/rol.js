@@ -1,43 +1,90 @@
 const express = require('express');
 const app = express.Router();
-const RolModel = require('../../Models/permiso/rol.model');
+const RolModel = require('../../models/permiso/rol.model');
 
 app.get('/', async (req,res) => {
-     
-     const obtenerRol = await RolModel.find();
-     const obtenerRolAgregate = await RolModel.aggregate([
-        {$lookup: 
+     try {
+        const blnEstado= req.query.blnEstado== "false" ? false:true;
+
+        const obtenerRol = await RolModel.find();
+        const obtenerRolAgregate = await RolModel.aggregate([
             {
-                from:"apis",
-                localField:"arrObjIdApis",
-                foreignField:"_id",
-                as: "Datos_Apis"
+                $match: {blnEstado: blnEstado}
+            },
+            {
+                $lookup:
+                {
+                   from:"apis",
+                   let:{arrObjIdApi:'$arrObjIdApis'},
+                   pipeline:
+                   [
+                       //no es necesario en esta consulta
+                       //{$match: {blnEstado:true}},
+                       {$match:
+                           {
+                               //si permite leer array
+                               $expr: {$in:['$_id','$$arrObjIdApi']}
+                           }
+                               //no permite leer array
+                               //$eq:[]
+                       },
+                       {$project:
+                           {
+                               strRuta:1,
+                               strMetodo:1
+                               //idApis:'$$arrObjIdApi'
+                           }
+                       }
+                   ],
+                   as: "Datos_apis"
+                }
             }
-        }
-     ])
-  
-     if(!obtenerRol.length>0) 
-        {
-            return res.status(400).json({
-                ok: false,
-                msg:'No hay roles en la base de datos',
-                count: obtenerRol.length,
+           // {$lookup: 
+           //     {
+           //         from:"apis",
+           //         localField:"arrObjIdApis",
+           //         foreignField:"_id",
+           //         as: "Datos_Apis"
+           //     }
+           // }
+        ])
+     
+        if(!obtenerRol.length>0) 
+           {
+               return res.status(400).json({
+                   ok: false,
+                   msg:'No hay roles en la base de datos',
+                   count: obtenerRol.length,
+                   cont:
+                   {
+                       obtenerRolAgregate
+                   }
+               })
+           }
+   
+           return res.status(200).json({
+               ok: true,
+               msg:'Si hay usuarios en la base de datos',
+               count: obtenerRol.length,
+               cont:
+               {
+                   obtenerRolAgregate
+               }
+           })
+           
+     } catch (error) {
+        const err = Error(error);
+        return res.status(500).json(
+            {
+                ok:false,
+                msg: 'Error en el servidor',
                 cont:
                 {
-                    obtenerRolAgregate
+                    error:err.message ? err.message : err.name ? err.name : err
                 }
             })
-        }
-
-        return res.status(200).json({
-            ok: true,
-            msg:'Si hay usuarios en la base de datos',
-            count: obtenerRol.length,
-            cont:
-            {
-                obtenerRolAgregate
-            }
-        })
+     }
+    
 })
 
 app.post ('/', async (req,res) => {

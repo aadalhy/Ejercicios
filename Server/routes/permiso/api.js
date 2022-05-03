@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express.Router();
-const ApiModel = require('../../Models/permiso/api.model');
+const ApiModel = require('../../models/permiso/api.model');
 
 app.post ('/', async (req,res) => {
     try {

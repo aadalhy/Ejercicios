@@ -7,5 +7,6 @@ app.use('/producto',require('./productos/producto'));
 app.use('/empresa',require('./empresa/empresa'));
 app.use('/permiso/api',require('./permiso/api'));
 app.use('/permiso/rol', require('./permiso/rol'));
+app.use('/imagen',require('./imagen/imagen'));
 
 module.exports = app;
