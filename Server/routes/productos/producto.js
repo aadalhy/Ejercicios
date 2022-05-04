@@ -7,7 +7,7 @@ const { verificarAcceso } = require('../../middlewares/permisos');
 //const arrJsnProductos=[{ _id:0, strNombre:'Adalh', nmbCantidad:0, strDescripcion:'', nmbPrecio:0}];
 //let arrJsnProductos=[];
 
-app.get('/',  async (req,res) => {
+app.get('/', async (req,res) => {
 
     
     try {

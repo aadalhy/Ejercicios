@@ -9,6 +9,7 @@ const cargarArchivo = require('../../library/cargarArchivos');
 
 //agregaramos los modelos de los que vamos a ser uso
 const EmpresaModel = require('../../models/empresa/empresa.model');
+const ApiModel = require('../../models/permiso/api.model');
 
 //no se necesitan
 // const { application } = require('express');
@@ -37,47 +38,39 @@ app.get('/', verificarAcceso, async (req,res) => {
                    let:{idObjRol:'$idObjRol'},
                    pipeline:
                    [
-                       {$match:{$expr: {$eq:['$_id','$$idObjRol']}}                       },
+                       {$match:{$expr: {$eq:['$_id','$$idObjRol']}}},
+                       {$lookup:
+                            {
+                                from: ApiModel.collection.name,
+                                let:{arrObjIdApi:'$arrObjIdApis'},
+                                pipeline:
+                                [
+                                    {$match:{ $expr: {$in:['$_id','$$arrObjIdApi']}}},
+                                    {$project:
+                                        {
+                                            _id:0,
+                                            strRuta:1,
+                                            strMetodo:1
+                                        }
+    
+                                    }
+                                ],
+                                as: 'Datos_apis'
+                            }
+                       },
                        {$project:
                            {
+                               _id:0,
                                strNombre:1,
-                               strDescripcion:1,
-                               arrObjIdApis:1
-                              
+                               strDireccion:1,
+                               blnRolDefault:1,
+                               Datos_apis: {$arrayElemAt:['$Datos_Apis',0]}
                            }
                        }
                    ],
-                   as: "Roles"
+                   as: 'Roles'
                 }
             },
-            // {$lookup:
-            //     {
-            //        from:"apis",
-            //        let:{arrObjIdApi:'$arrObjIdApis'},
-            //        pipeline:
-            //        [
-            //            //no es necesario en esta consulta
-            //            //{$match: {blnEstado:true}},
-            //            {$match:
-            //                {
-            //                    //si permite leer array
-            //                    $expr: {$in:['$_id','$$arrObjIdApi']}
-            //                }
-            //                    //no permite leer array
-            //                    //$eq:[]
-            //            },
-            //            {$project:
-            //                {
-            //                    strRuta:1,
-            //                    strMetodo:1
-            //                    //idApis:'$$arrObjIdApi'
-            //                }
-            //            }
-            //        ],
-            //        as: "Datos_apis"
-            //     }
-            // },
-
             {$project:
                 {
                     strNombre:1,
@@ -87,9 +80,7 @@ app.get('/', verificarAcceso, async (req,res) => {
                     empresa: {
                         $arrayElemAt:['$Datos_Empresa',0]
                     },
-                    idObjRol:1,
-                    roles: {$arrayElemAt:['$Roles',0]},
-                    apis: {$arrayElemAt:['$Datos_apis',0]}
+                    Roles: {$arrayElemAt:['$Roles',0]}
                 }
             }
         ]);
