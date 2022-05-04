@@ -7,6 +7,8 @@ const bcrypt = require('bcrypt');
 const { verificarAcceso } = require('../../middlewares/permisos');
 const cargarArchivo = require('../../library/cargarArchivos');
 
+//agregaramos los modelos de los que vamos a ser uso
+const EmpresaModel = require('../../models/empresa/empresa.model');
 
 //no se necesitan
 // const { application } = require('express');
@@ -23,12 +25,59 @@ app.get('/', verificarAcceso, async (req,res) => {
             {$match: {$expr: {$eq: ["$blnEstado", _blnEstado] } }},
             {$lookup: 
                 {
-                    from:"empresas",
+                    from: EmpresaModel.collection.name,
                     localField:"idEmpresa",
                     foreignField:"_id",
                     as: "Datos_Empresa"
                 }
             },
+            {$lookup:
+                {
+                   from:RolModel.collection.name,
+                   let:{idObjRol:'$idObjRol'},
+                   pipeline:
+                   [
+                       {$match:{$expr: {$eq:['$_id','$$idObjRol']}}                       },
+                       {$project:
+                           {
+                               strNombre:1,
+                               strDescripcion:1,
+                               arrObjIdApis:1
+                              
+                           }
+                       }
+                   ],
+                   as: "Roles"
+                }
+            },
+            // {$lookup:
+            //     {
+            //        from:"apis",
+            //        let:{arrObjIdApi:'$arrObjIdApis'},
+            //        pipeline:
+            //        [
+            //            //no es necesario en esta consulta
+            //            //{$match: {blnEstado:true}},
+            //            {$match:
+            //                {
+            //                    //si permite leer array
+            //                    $expr: {$in:['$_id','$$arrObjIdApi']}
+            //                }
+            //                    //no permite leer array
+            //                    //$eq:[]
+            //            },
+            //            {$project:
+            //                {
+            //                    strRuta:1,
+            //                    strMetodo:1
+            //                    //idApis:'$$arrObjIdApi'
+            //                }
+            //            }
+            //        ],
+            //        as: "Datos_apis"
+            //     }
+            // },
+
             {$project:
                 {
                     strNombre:1,
@@ -37,7 +86,10 @@ app.get('/', verificarAcceso, async (req,res) => {
                     strEmail:1,
                     empresa: {
                         $arrayElemAt:['$Datos_Empresa',0]
-                    }
+                    },
+                    idObjRol:1,
+                    roles: {$arrayElemAt:['$Roles',0]},
+                    apis: {$arrayElemAt:['$Datos_apis',0]}
                 }
             }
         ]);
