@@ -4,11 +4,13 @@ let urlDB;
 
 if(process.env.NODE_ENV === 'dev')
 {
-    urlDB ='mongodb://localhost:27017/Inventario'
+    urlDB ="mongodb+srv://adalhy:r06a07ra@cluster0.gka8k.mongodb.net/Bootcamp?retryWrites=true&w=majority"
+    //'mongodb://localhost:27017/Inventario'
 }
 else
 {
-    urlDB ='mongodb://localhost:27017/Inventario'
+    urlDB ="mongodb+srv://adalhy:r06a07ra@cluster0.gka8k.mongodb.net/Bootcamp?retryWrites=true&w=majority"
+    //'mongodb://localhost:27017/Inventario'
 }
 
 process.env.URLDB = urlDB;
